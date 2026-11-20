@@ -1,8 +1,9 @@
-/*! Slide Engine v1.0.1 | 수업 슬라이드 엔진 | MIT */
+/*! Slide Engine v1.1.0 | 수업 슬라이드 엔진 | MIT */
 (function () {
 'use strict';
 if (window.SlideEngine) return;
-var VERSION = '1.0.1', D = document, W = window;
+var VERSION = '1.1.0', D = document, W = window;
+var SRC = (D.currentScript && D.currentScript.src) || '';
 var CDN = {
   katexCss: 'https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css',
   katexJs: 'https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js',
@@ -123,6 +124,12 @@ function start() {
   var cur = -1, trT = 0, top = null, editing = false, dirty = false;
   var pen = { on: false, paths: {}, color: '', w: 6 };
   var ui = {};
+  /* 테마 팩: data-theme이 있으면 테마 CSS가 색·글꼴·장식·모션을 정한다 */
+  var theme = deck.getAttribute('data-theme');
+  var T = { title: '', tr: '', pt: '', cel: false };
+  function tv(n) { return W.getComputedStyle(deck).getPropertyValue(n).trim().replace(/^["']|["']$/g, ''); }
+  if (theme) { deck.removeAttribute('data-deco'); deck.classList.add('se-themed'); }
+  if (deck.getAttribute('data-motion') !== 'none') deck.classList.add('se-m');
 
   /* ── 화면 맞춤 ── */
   function fit() {
@@ -175,6 +182,10 @@ function start() {
     slides.forEach(function (s) { var t = s.getAttribute('data-stage'); if (t && stages.indexOf(t) < 0) stages.push(t); });
     var typed = deck.getAttribute('data-enter') === 'type';
     var lively = deck.getAttribute('data-motion') === 'lively';
+    if (theme) {
+      T.title = typed ? '' : tv('--t-title'); T.tr = tv('--t-transition'); T.pt = tv('--t-particles'); T.cel = tv('--t-celebrate') === '1';
+      if (T.title && T.title !== 'none') deck.classList.add('se-tfx-' + T.title); else T.title = '';
+    }
     slides.forEach(function (s, i) {
       setA(s, 'aria-roledescription', 'slide');
       setA(s, 'aria-label', (i + 1) + ' / ' + N);
@@ -182,6 +193,8 @@ function start() {
       $$('i.ico[data-i]', s).forEach(function (e) { e.innerHTML = svg(e.getAttribute('data-i')); setA(e, 'aria-hidden', 'true'); });
       $$('.words', s).forEach(function (e) { split(e, 'se-wd', true); });
       if (typed) $$('h1,h2,.big,.q', s).forEach(function (e) { if (!e.closest('.quiz')) { split(e, 'se-ch'); e.classList.add('se-typed'); } });
+      var hero = T.title && s.matches('.layout-cover,.layout-section,.layout-statement,.layout-question') ? $('h1,h2,.big,.q', s) : null;
+      if (hero && !hero.classList.contains('words')) { split(hero, 'se-tw', T.title !== 'chars'); hero.classList.add('se-fx'); }
       var u = units(s);
       u.forEach(function (e, j) { e.classList.add('se-u'); e.style.setProperty('--se-i', j); });
       if (has('stagger')) s.style.setProperty('--se-gap', Math.min(lively ? 0.12 : 0.09, 0.55 / Math.max(u.length, 1)).toFixed(3) + 's');
@@ -191,6 +204,7 @@ function start() {
           return h('span', { class: t === s.getAttribute('data-stage') ? 'on' : '', text: t });
         })));
       }
+      if (theme) { var dc = h('div', { class: 'se-deco', 'aria-hidden': 'true' }), k; for (k = 0; k < 6; k++) dc.append(h('i')); s.prepend(dc); }
       bgInit(s);
     });
     $$('.img-slot', deck).forEach(slotInit);
@@ -214,7 +228,7 @@ function start() {
     s.__k = k;
     stepsOf(s).forEach(function (e, i) { e.classList.toggle('is-shown', i < k); });
   }
-  var morphIds = {}, morphN = 0;
+  var morphIds = {}, morphN = 0, pend = null, pendT = 0;
   function tag(s, on) {
     $$('[data-morph]', s).forEach(function (e) {
       var n = e.getAttribute('data-morph');
@@ -225,9 +239,11 @@ function start() {
   function go(i, o) {
     o = o || {};
     i = Math.max(0, Math.min(N - 1, i));
+    if (pend) { clearTimeout(pendT); pend(); }
     if (i === cur) return;
     var from = slides[cur], to = slides[i], back = cur > -1 && i < cur;
-    var tr = (!from || o.instant || reduce()) ? 'none' : (deck.getAttribute('data-transition') || 'fade');
+    var tr = (!from || o.instant || reduce()) ? 'none' : (deck.getAttribute('data-transition') || T.tr || 'fade');
+    setA(deck, 'data-se-tr', tr);
     function swap() {
       if (from) { from.classList.remove('is-active'); from.setAttribute('aria-hidden', 'true'); left(from); }
       setSteps(to, o.shown ? stepsOf(to).length : 0);
@@ -245,10 +261,18 @@ function start() {
     }
     if (tr === 'none') { swap(); return; }
     deck.classList.toggle('se-back', back);
+    if (tr === 'curtain') {
+      if (!ui.curtain) { ui.curtain = h('div', { class: 'se-curtain', 'aria-hidden': 'true' }, h('i'), h('i'), h('i')); deck.append(ui.curtain); }
+      ui.curtain.classList.remove('on'); void ui.curtain.offsetWidth; ui.curtain.classList.add('on');
+      pend = function () { pend = null; swap(); };
+      pendT = setTimeout(pend, 520 * K);
+      trT = setTimeout(function () { ui.curtain.classList.remove('on'); }, 1100 * K);
+      return;
+    }
     from.classList.add('is-leaving');
     swap();
     to.classList.add('is-entering');
-    trT = setTimeout(function () { from.classList.remove('is-leaving'); to.classList.remove('is-entering'); }, 600 * K + 80);
+    trT = setTimeout(function () { from.classList.remove('is-leaving'); to.classList.remove('is-entering'); }, (tr === 'wipe' || tr === 'iris' || tr === 'cover' ? 800 : 600) * K + 80);
   }
   function next() {
     var s = slides[cur], st = stepsOf(s);
@@ -302,34 +326,77 @@ function start() {
 
   /* ── 배경 움직임 ── */
   function bgInit(s) {
-    var m = deck.getAttribute('data-bg-motion');
-    if (!m || m === 'none' || !s.matches('.layout-cover,.layout-section,.layout-question')) return;
+    var m = deck.getAttribute('data-bg-motion'), hero = s.matches('.layout-cover,.layout-section,.layout-question' + (theme ? ',.layout-statement' : ''));
+    if (m == null && theme && T.pt && T.pt !== 'none') m = 'particles';
+    if (!m || m === 'none' || !hero) return;
     var b = h('div', { class: 'se-bg ' + m, 'aria-hidden': 'true' }), i;
     if (m === 'particles') {
       var c = h('canvas', { width: 960, height: 540 });
-      b.append(c); s.__pt = particles(c);
+      b.append(c); s.__pt = particles(c, T.pt && T.pt !== 'none' ? T.pt : 'dust');
     } else for (i = 0; i < (m === 'flow' ? 2 : 4); i++) b.append(h('i'));
     s.prepend(b);
   }
-  function particles(c) {
-    var ctx = c.getContext('2d'), raf = 0, on = false, P = [], i;
-    for (i = 0; i < 28; i++) P.push({ x: Math.random() * 960, y: Math.random() * 540, vx: (Math.random() - 0.5) * 0.22, vy: -0.05 - Math.random() * 0.2, r: 2 + Math.random() * 5 });
+  /* 입자: dust(떠오르는 점) · stars(반짝이는 별) · snow(눈) · petals(꽃잎) · bubbles(물방울) · confetti(색종이) */
+  function particles(c, mode) {
+    var ctx = c.getContext('2d'), raf = 0, on = false, P = [], i, t = 0, C = null;
+    var fall = mode === 'snow' || mode === 'petals' || mode === 'confetti';
+    var n = mode === 'stars' ? 80 : mode === 'bubbles' ? 18 : 28;
+    function mk(p, init) {
+      p.x = Math.random() * 960; p.y = init ? Math.random() * 540 : (fall ? -14 : 554);
+      p.r = mode === 'stars' ? 0.5 + Math.random() * 1.9 : mode === 'bubbles' ? 5 + Math.random() * 16 : 2 + Math.random() * 5;
+      p.a = Math.random() * 6.283; p.s = 0.5 + Math.random(); p.c = Math.floor(Math.random() * 3);
+      p.vx = mode === 'stars' ? 0 : (Math.random() - 0.5) * (fall ? 0.3 : 0.22);
+      p.vy = mode === 'stars' ? 0 : fall ? 0.22 + Math.random() * 0.4 : -(0.05 + Math.random() * 0.2) * (mode === 'bubbles' ? 2 : 1);
+      return p;
+    }
+    for (i = 0; i < n; i++) P.push(mk({}, true));
     function draw() {
+      if (!C) { var cs = W.getComputedStyle(deck), g = function (k, d) { return cs.getPropertyValue(k).trim() || d; }; C = [g('--accent', '#FF5A36'), g('--accent-2', '#1E2A44'), g('--ink', '#16181B')]; }
+      t += 0.016;
       ctx.clearRect(0, 0, 960, 540);
-      ctx.fillStyle = getComputedStyle(deck).getPropertyValue('--accent').trim() || '#FF5A36';
       P.forEach(function (p) {
-        p.x += p.vx; p.y += p.vy;
-        if (p.y < -10) { p.y = 550; p.x = Math.random() * 960; }
-        if (p.x < -10) p.x = 970; if (p.x > 970) p.x = -10;
-        ctx.globalAlpha = 0.16 + p.r / 22;
-        ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, 6.2832); ctx.fill();
+        p.x += p.vx + (fall ? Math.sin(t * p.s + p.a) * 0.25 : 0); p.y += p.vy;
+        if (p.y < -16 || p.y > 556) mk(p, false);
+        if (p.x < -16) p.x = 974; if (p.x > 976) p.x = -14;
+        if (mode === 'stars') {
+          ctx.fillStyle = ctx.strokeStyle = C[2]; ctx.globalAlpha = 0.2 + 0.7 * Math.abs(Math.sin(t * p.s * 0.9 + p.a));
+          ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, 6.2832); ctx.fill();
+          if (p.r > 2) { ctx.lineWidth = 0.6; ctx.beginPath(); ctx.moveTo(p.x - p.r * 3, p.y); ctx.lineTo(p.x + p.r * 3, p.y); ctx.moveTo(p.x, p.y - p.r * 3); ctx.lineTo(p.x, p.y + p.r * 3); ctx.stroke(); }
+        } else if (mode === 'bubbles') {
+          ctx.strokeStyle = C[0]; ctx.lineWidth = 1.5; ctx.globalAlpha = 0.4;
+          ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, 6.2832); ctx.stroke();
+        } else if (mode === 'petals' || mode === 'confetti') {
+          ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.a + t * p.s * (mode === 'confetti' ? 1.6 : 0.7));
+          ctx.fillStyle = C[mode === 'confetti' ? p.c : p.c % 2]; ctx.globalAlpha = mode === 'confetti' ? 0.85 : 0.5;
+          ctx.beginPath();
+          if (mode === 'confetti') ctx.rect(-p.r, -p.r * 0.5, p.r * 2, p.r); else ctx.ellipse(0, 0, p.r * 1.5, p.r * 0.75, 0, 0, 6.2832);
+          ctx.fill(); ctx.restore();
+        } else {
+          ctx.fillStyle = mode === 'snow' ? C[2] : C[0]; ctx.globalAlpha = mode === 'snow' ? 0.55 : 0.16 + p.r / 22;
+          ctx.beginPath(); ctx.arc(p.x, p.y, mode === 'snow' ? p.r * 0.7 : p.r, 0, 6.2832); ctx.fill();
+        }
       });
+      ctx.globalAlpha = 1;
       if (on) raf = W.requestAnimationFrame(draw);
     }
     return {
       start: function () { W.cancelAnimationFrame(raf); on = !reduce(); draw(); },
       stop: function () { on = false; W.cancelAnimationFrame(raf); }
     };
+  }
+  /* 정답 축하: 색종이가 터진다 (생동감 있게 · 테마가 켠 경우) */
+  function burst(el) {
+    if (reduce() || !el) return;
+    var r = el.getBoundingClientRect(), d = deck.getBoundingClientRect(), i, a, v, pc;
+    var box = h('div', { class: 'se-burst', 'aria-hidden': 'true' });
+    box.style.left = (r.left + Math.min(r.width / 2, 120) - d.left) + 'px'; box.style.top = (r.top + r.height / 2 - d.top) + 'px';
+    for (i = 0; i < 30; i++) {
+      pc = h('i'); a = Math.random() * 6.283; v = 140 + Math.random() * 300;
+      pc.style.cssText = '--dx:' + (Math.cos(a) * v).toFixed(0) + 'px;--dy:' + (Math.sin(a) * v - 140).toFixed(0) + 'px;--r:' + (Math.random() * 720 - 360).toFixed(0) + 'deg;animation-delay:' + (Math.random() * 0.08).toFixed(2) + 's';
+      box.append(pc);
+    }
+    deck.append(box);
+    setTimeout(function () { box.remove(); }, 1600);
   }
 
   /* ── 겹쳐 뜨는 창 ── */
@@ -720,6 +787,7 @@ function start() {
         it.classList.toggle('is-wrong', !right && val === String(v));
         if (kind === 'ox') it.lastChild.textContent = right ? '정답 ✓' : (val === String(v) ? '오답 ✕' : '');
       });
+      if (ok && (T.cel || deck.getAttribute('data-motion') === 'lively')) burst(items.filter(function (it) { return it.classList.contains('is-right'); })[0]);
       msg.textContent = ok ? '✓ 정답이에요' : '✕ 아쉬워요. 정답은 ' + ans + (kind === 'opt' ? '번' : '') + '이에요';
       return true;
     }
@@ -1042,6 +1110,12 @@ function start() {
   if (deck.__se) return;
   deck.__se = 1;
   fit();
+  if (theme && tv('--t-name') !== theme && SRC) {
+    var tcss = SRC.replace(/slide-engine(\.min)?\.js(\?.*)?$/, 'themes/' + theme + '.css');
+    if (tcss !== SRC) { load(tcss, 1).then(boot, boot); return; }
+  }
+  boot();
+  function boot() {
   prepare();
   chrome();
   bind();
@@ -1063,6 +1137,7 @@ function start() {
     html: clean
   };
   try { deck.dispatchEvent(new CustomEvent('se:ready', { bubbles: true })); } catch (e) {}
+  }
 }
 
 if (D.readyState === 'loading') D.addEventListener('DOMContentLoaded', start); else start();

@@ -9,16 +9,19 @@ AI가 만든 수업 슬라이드(HTML)가 불러 쓰는 엔진이다. 디자인�
 |---|---|
 | `slide-engine.css` | 레이아웃 24종, 위젯, 모션, 장식 7종, 인쇄 스타일 |
 | `slide-engine.js` | 화면 맞춤, 이동·전환, 위젯, 발표 기능, 아이콘 |
+| `themes/{이름}.css` | 테마 팩 8종 (v1.1.0부터). 색·글꼴·표지 구성·장식·모션이 든 완성된 디자인 |
 | `../samples/reference-deck.html` | 레퍼런스 덱. 모든 레이아웃·위젯 확인용이자 웹앱 미리보기의 원본 |
 
-크기: CSS 약 52KB + JS 약 58KB (압축 전, 목표 120KB 이하).
+크기: CSS 약 56KB + JS 약 64KB (압축 전, 목표 125KB 이하). 테마 팩은 하나에 7~10KB이고 쓰는 것 하나만 불러온다.
 
 ## 불러오는 주소
 
 ```html
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/hirame-ki/slide-engine@v1.0.1/engine/slide-engine.css">
-<script src="https://cdn.jsdelivr.net/gh/hirame-ki/slide-engine@v1.0.1/engine/slide-engine.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/hirame-ki/slide-engine@v1.1.0/engine/slide-engine.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/hirame-ki/slide-engine@v1.1.0/engine/themes/studio.css">   <!-- 테마 팩을 쓸 때만 -->
+<script src="https://cdn.jsdelivr.net/gh/hirame-ki/slide-engine@v1.1.0/engine/slide-engine.js"></script>
 ```
+
 
 - 저장소 `hirame-ki/slide-engine`에 `engine/`과 `samples/` 폴더를 그대로 올린다 (GitHub 웹에서 파일 끌어다 놓기).
 - 태그는 GitHub 웹의 **Releases → Draft a new release**에서 `v1.0.0`으로 만든다. 태그가 있어야 위 주소가 열린다.
@@ -41,6 +44,35 @@ AI가 만든 수업 슬라이드(HTML)가 불러 쓰는 엔진이다. 디자인�
 - 테마는 `:root`의 변수 8개(`--bg` `--surface` `--ink` `--ink-2` `--accent` `--accent-ink` `--accent-2` `--radius`)로 정한다.
 - `<main>` 속성과 장 안에서 쓰는 표시는 `docs/03_OUTPUT_TEMPLATES.md` §9-2 표와 같다.
 - `data-features`가 아예 없으면 `stagger draw pen zoom edit overview help progress`로 본다.
+
+## 테마 팩 (v1.1.0)
+
+```html
+<link rel="stylesheet" href="…/engine/slide-engine.css">
+<link rel="stylesheet" href="…/engine/themes/pop.css">
+…
+<main class="deck" data-theme="pop" data-ratio="16:9" data-motion="subtle" data-features="stagger draw …">
+```
+
+| 값 | 이름 | 제목 등장 | 전환 | 배경 입자 |
+|---|---|---|---|---|
+| `studio` | 스튜디오 | mask | wipe | – |
+| `magazine` | 매거진 | blur | fade | – |
+| `chalk` | 칠판 | write | wipe | dust |
+| `pop` | 팝 | pop | curtain | – (정답 축하) |
+| `note` | 노트 | write | cover | – |
+| `cosmos` | 밤하늘 | chars | zoom | stars |
+| `retro` | 레트로 | mask | curtain | – |
+| `botanic` | 보태니컬 | blur | fade | petals |
+
+- 테마 CSS 파일 이름과 `data-theme` 값은 같아야 한다. 테마 CSS 줄이 없으면 엔진이 자기 주소 옆의 `themes/{이름}.css`를 불러온다.
+- `data-theme`이 있으면 `data-deco`는 무시한다. `data-head-font`를 적으면 테마의 제목 글꼴 대신 그 글꼴을 쓴다.
+- `data-enter` · `data-transition` · `data-bg-motion`을 적으면 그 값이 테마의 모션보다 앞선다. 적지 않으면 테마가 정한 모션이 나온다.
+- 색 바꾸기: 테마 CSS 다음의 `<style>`에서 `:root` 변수 8개(`--bg` `--surface` `--ink` `--ink-2` `--accent` `--accent-ink` `--accent-2` `--on-accent`)를 덮어쓴다. 구성과 모션은 그대로 두고 색만 바뀐다.
+- 엔진은 장마다 `<div class="se-deco"><i>×6</i></div>`를 넣고 테마가 그 여섯 칸으로 장식을 그린다. 저장한 파일에는 남지 않는다.
+- 새 테마를 만들 때: `[data-theme=이름]{--t-name:이름; --t-title:…; --t-transition:…; --t-particles:…}`를 꼭 넣는다 (`--t-name`으로 테마 CSS가 불러와졌는지 확인한다). 움직임은 `.se-m[data-theme=이름] .slide.is-active …`에만 건다 (`se-m`은 모션이 켜져 있을 때만 붙는다).
+- 확인: `samples/reference-deck.html?theme=pop` (오른쪽 위 버튼으로도 바꿀 수 있다).
+- 글꼴: 매거진 Hahmlet, 칠판·노트 Gaegu, 팝 Bagel Fat One, 레트로 Do Hyeon, 보태니컬 Gowun Batang (모두 Google Fonts, 테마 CSS가 불러온다).
 
 ## 명세에 더한 것 (구현하면서 정한 것)
 
@@ -81,6 +113,7 @@ AI가 만든 수업 슬라이드(HTML)가 불러 쓰는 엔진이다. 디자인�
 | 버전 | 날짜 | 내용 |
 |---|---|---|
 | v1.0.0 | 2026-11-20 | 첫 버전 |
+| v1.1.0 | 2026-11-20 | 테마 팩 8종(`data-theme`, `themes/*.css`), 장식 칸, 큰 제목 등장 효과 5종, 전환 4종 추가(wipe·iris·cover·curtain), 배경 입자 5종 추가(stars·snow·petals·bubbles·confetti), 정답 축하 색종이, `--on-accent` 변수, `data-head-font="pretendard"` 규칙. 기존 파일은 그대로 동작한다 |
 | v1.0.1 | 2026-11-20 | 공개한 클릭 단계·빈칸 정답이 다른 장 위로 비쳐 보이던 문제 수정. 학습목표·요약·목차·퀴즈 보기 안에 `<mark>`·`<b>`를 넣으면 글자가 깨지던 문제 수정. blob 장식에서 질문 장의 물음표가 묻히던 문제 수정. 크기 맞춤 보강(ResizeObserver) |
 
 ## 라이선스

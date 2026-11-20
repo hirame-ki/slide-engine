@@ -1,10 +1,11 @@
-/*! Slide Engine v1.0.1 | 수업 슬라이드 엔진 | MIT */
+/*! Slide Engine v1.1.0 | 수업 슬라이드 엔진 | MIT */
 @import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css");
 
 /* ───────── 1. 테마 변수 (생성된 파일의 <style>이 덮어쓴다) ───────── */
 :root{
   --bg:#FFFFFF;--surface:#F3F4F1;--ink:#16181B;--ink-2:#5B6168;
   --accent:#FF5A36;--accent-ink:#C2361A;--accent-2:#1E2A44;--radius:16px;
+  --on-accent:#FFFFFF; /* 강조색 면 위의 글자색 (테마 팩에서 씀) */
 }
 html,body{margin:0;height:100%;background:var(--bg)}
 html.se-hc{--bg:#FFFFFF;--surface:#FFFFFF;--ink:#000000;--ink-2:#000000;--accent:#000000;--accent-ink:#000000;--accent-2:#000000}
@@ -33,6 +34,7 @@ html.se-hc{--bg:#FFFFFF;--surface:#FFFFFF;--ink:#000000;--ink-2:#000000;--accent
 .deck[data-enter="fade"]{--se-enter:se-fade}.deck[data-enter="blur"]{--se-enter:se-blur}
 .deck[data-enter="scale"]{--se-enter:se-scale}.deck[data-enter="mask"]{--se-enter:se-mask}
 .deck[data-enter="type"]{--se-enter:se-fade}
+.deck[data-head-font="pretendard"]{--se-head:var(--se-font);--se-head-w:800}
 .deck[data-head-font="rounded"]{--se-head:"Gowun Dodum",var(--se-font);--se-head-w:400}
 .deck[data-head-font="cute"]{--se-head:"Jua",var(--se-font);--se-head-w:400}
 .deck[data-head-font="serif"]{--se-head:"Noto Serif KR","Nanum Myeongjo",Batang,serif;--se-head-w:800}
@@ -391,6 +393,18 @@ html.se-hc{--bg:#FFFFFF;--surface:#FFFFFF;--ink:#000000;--ink-2:#000000;--accent
 @keyframes se-push-out-b{to{transform:translateX(100%)}}
 @keyframes se-zoom-in{from{opacity:0;transform:scale(.9)}}
 @keyframes se-zoom-out{to{opacity:0;transform:scale(1.08)}}
+@keyframes se-wipe-in{from{clip-path:inset(0 0 0 100%)}to{clip-path:inset(0 0 0 0)}}
+@keyframes se-wipe-in-b{from{clip-path:inset(0 100% 0 0)}to{clip-path:inset(0 0 0 0)}}
+@keyframes se-iris-in{from{clip-path:circle(0% at 50% 50%)}to{clip-path:circle(75% at 50% 50%)}}
+@keyframes se-cover-out{to{transform:scale(.94);opacity:.45}}
+@keyframes se-curtain{0%{transform:translateX(-101%)}45%,55%{transform:translateX(0)}100%{transform:translateX(101%)}}
+@keyframes se-curtain-b{0%{transform:translateX(101%)}45%,55%{transform:translateX(0)}100%{transform:translateX(-101%)}}
+@keyframes se-tw-mask{0%{clip-path:inset(0 -10% 115% -10%);transform:translateY(115%)}99%{clip-path:inset(0 -10% 0% -10%);transform:none}100%{clip-path:inset(-40% -10% -40% -10%);transform:none}}
+@keyframes se-tw-char{from{opacity:0;transform:translateY(.5em) rotate(6deg)}}
+@keyframes se-tw-pop{from{opacity:0;transform:scale(.3) rotate(-8deg)}}
+@keyframes se-tw-write{from{clip-path:inset(-30% 100% -30% -5%)}to{clip-path:inset(-30% -5% -30% -5%)}}
+@keyframes se-tw-blur{from{opacity:0;filter:blur(14px);transform:translateY(.15em)}}
+@keyframes se-burst{0%{transform:none;opacity:1}75%{opacity:1}100%{transform:translate(var(--dx),calc(var(--dy) + 280px)) rotate(var(--r));opacity:0}}
 @keyframes se-flow{from{transform:translate(-6%,-4%) rotate(0)}to{transform:translate(6%,5%) rotate(8deg)}}
 @keyframes se-float{from{transform:translate(0,0) rotate(0)}to{transform:translate(var(--dx,40px),var(--dy,-60px)) rotate(var(--dr,24deg))}}
 
@@ -409,16 +423,38 @@ html.se-hc{--bg:#FFFFFF;--surface:#FFFFFF;--ink:#000000;--ink-2:#000000;--accent
 .deck.se-on.se-f-draw:not([data-motion="none"]) .slide.is-active .map>svg line{stroke-dasharray:1;stroke-dashoffset:1;animation:se-dash calc(.6s*var(--se-k)) var(--se-ease) .2s forwards}
 .deck.se-on:not([data-motion="none"]) .slide.is-active .chart .se-bf{animation:se-grow calc(.7s*var(--se-k)) var(--se-ease) .3s both}
 .deck.se-on.se-f-kenburns:not([data-motion="none"]) .slide.is-active:is(.layout-fullbleed,.layout-split) .img-slot>img{animation:se-ken 12s ease-out both}
+/* 제목 등장 효과 (테마 팩의 --t-title: mask · chars · pop · write · blur) */
+.se-tw{display:inline-block}
+.deck.se-on:not([data-motion="none"]) .slide.is-active .se-u.se-fx{animation:none}
+.deck.se-on:not([data-motion="none"]) .slide.is-active .se-tw{animation:var(--se-tfx,se-tw-mask) calc(var(--se-tfx-dur,.7s)*var(--se-k)) var(--se-tfx-ease,cubic-bezier(.2,.8,.2,1)) both;animation-delay:calc(.12s + var(--se-i,0)*var(--se-gap) + var(--se-c)*var(--se-tfx-gap,.07s))}
+.deck.se-tfx-chars{--se-tfx:se-tw-char;--se-tfx-gap:.035s;--se-tfx-dur:.6s}
+.deck.se-tfx-pop{--se-tfx:se-tw-pop;--se-tfx-ease:cubic-bezier(.3,1.6,.4,1);--se-tfx-gap:.08s;--se-tfx-dur:.55s}
+.deck.se-tfx-write{--se-tfx:se-tw-write;--se-tfx-ease:linear;--se-tfx-gap:.2s;--se-tfx-dur:.3s}
+.deck.se-tfx-blur{--se-tfx:se-tw-blur;--se-tfx-gap:.09s;--se-tfx-dur:.9s}
 /* 화면 전환 */
 .deck .slide.is-leaving{visibility:visible;z-index:1}
 .deck .slide.is-entering{z-index:2}
-.deck[data-transition="fade"] .slide.is-entering,.deck:not([data-transition]) .slide.is-entering,.deck[data-transition="morph"] .slide.is-entering{animation:se-t-in var(--se-tdur) ease both}
-.deck[data-transition="push"] .slide.is-entering{animation:se-push-in var(--se-tdur) cubic-bezier(.3,.8,.2,1) both}
-.deck[data-transition="push"] .slide.is-leaving{animation:se-push-out var(--se-tdur) cubic-bezier(.3,.8,.2,1) both}
-.deck[data-transition="push"].se-back .slide.is-entering{animation-name:se-push-in-b}
-.deck[data-transition="push"].se-back .slide.is-leaving{animation-name:se-push-out-b}
-.deck[data-transition="zoom"] .slide.is-entering{animation:se-zoom-in var(--se-tdur) var(--se-ease) both}
-.deck[data-transition="zoom"] .slide.is-leaving{animation:se-zoom-out var(--se-tdur) var(--se-ease) both}
+.deck .slide.is-entering{animation:se-t-in var(--se-tdur) ease both}
+.deck[data-se-tr="push"] .slide.is-entering{animation:se-push-in var(--se-tdur) cubic-bezier(.3,.8,.2,1) both}
+.deck[data-se-tr="push"] .slide.is-leaving{animation:se-push-out var(--se-tdur) cubic-bezier(.3,.8,.2,1) both}
+.deck[data-se-tr="push"].se-back .slide.is-entering{animation-name:se-push-in-b}
+.deck[data-se-tr="push"].se-back .slide.is-leaving{animation-name:se-push-out-b}
+.deck[data-se-tr="zoom"] .slide.is-entering{animation:se-zoom-in var(--se-tdur) var(--se-ease) both}
+.deck[data-se-tr="zoom"] .slide.is-leaving{animation:se-zoom-out var(--se-tdur) var(--se-ease) both}
+.deck[data-se-tr="wipe"] .slide.is-entering{animation:se-wipe-in calc(var(--se-tdur)*1.3) cubic-bezier(.7,0,.2,1) both}
+.deck[data-se-tr="wipe"].se-back .slide.is-entering{animation-name:se-wipe-in-b}
+.deck[data-se-tr="iris"] .slide.is-entering{animation:se-iris-in calc(var(--se-tdur)*1.3) cubic-bezier(.6,0,.2,1) both}
+.deck[data-se-tr="cover"] .slide.is-entering{animation:se-push-in calc(var(--se-tdur)*1.2) cubic-bezier(.2,.8,.2,1) both;box-shadow:0 0 120px rgba(0,0,0,.28)}
+.deck[data-se-tr="cover"].se-back .slide.is-entering{animation-name:se-push-in-b}
+.deck[data-se-tr="cover"] .slide.is-leaving{animation:se-cover-out calc(var(--se-tdur)*1.2) ease both}
+.deck[data-se-tr="curtain"] .slide.is-entering{animation:none}
+.se-curtain{position:absolute;inset:0;z-index:20;overflow:hidden;pointer-events:none;display:none}
+.se-curtain.on{display:block}
+.se-curtain i{position:absolute;inset:0;transform:translateX(-101%);animation:se-curtain calc(.9s*var(--se-k)) cubic-bezier(.7,0,.2,1) both}
+.se-curtain i:nth-child(1){background:var(--t-c1,var(--accent))}
+.se-curtain i:nth-child(2){background:var(--t-c2,var(--accent-2));animation-delay:calc(.07s*var(--se-k))}
+.se-curtain i:nth-child(3){background:var(--t-c3,var(--ink));animation-delay:calc(.14s*var(--se-k))}
+.deck.se-back .se-curtain i{animation-name:se-curtain-b}
 ::view-transition-old(root),::view-transition-new(root){animation-duration:.5s}
 ::view-transition-group(*){animation-duration:.6s;animation-timing-function:cubic-bezier(.2,.8,.2,1)}
 /* 배경 움직임 */
@@ -434,6 +470,16 @@ html.se-hc{--bg:#FFFFFF;--surface:#FFFFFF;--ink:#000000;--ink-2:#000000;--accent
 .se-bg.float i:nth-child(4){right:38%;top:16%;width:60px;height:60px;border-radius:50%;border:0;background:color-mix(in srgb,var(--accent) 70%,var(--bg));--dx:60px;--dy:30px;animation-duration:21s}
 .se-bg canvas{position:absolute;inset:0;width:100%;height:100%}
 .deck.se-on .slide.is-active .se-bg i{animation-play-state:running}
+
+/* 테마 팩 장식 칸: 엔진이 장마다 <div class="se-deco"><i>×6</i></div>를 넣고 테마 CSS가 모양을 정한다 */
+.se-deco{position:absolute;inset:0;z-index:-1;overflow:hidden;pointer-events:none}
+.se-deco i{position:absolute;display:block}
+.deck .slide.handout .se-deco,.layout-fullbleed>.se-deco,html.se-hc .se-deco{display:none}
+.se-burst{position:absolute;z-index:25;width:0;height:0;pointer-events:none;scale:var(--se-scale,1)}
+.se-burst i{position:absolute;left:-9px;top:-6px;width:18px;height:12px;border-radius:3px;background:var(--accent);animation:se-burst 1.25s cubic-bezier(.1,.7,.3,1) both}
+.se-burst i:nth-child(4n+1){background:var(--accent-2)}
+.se-burst i:nth-child(4n+2){background:var(--ink)}
+.se-burst i:nth-child(4n+3){width:14px;height:14px;border-radius:50%}
 
 /* ───────── 9. 장식 (data-deco) ───────── */
 .deck[data-deco] .slide::before{content:"";position:absolute;z-index:-1;pointer-events:none}
@@ -554,7 +600,7 @@ html.se-hc :is(.card,.col,.goals>li,.activity>*,.quiz .why,.se-ty-t,.blank){outl
   .deck *,.deck *::before,.deck *::after{animation:none!important;transition:none!important}
   .deck .step{opacity:1!important;visibility:inherit!important}
   .se-bar,.se-ov,.se-notes,.se-pen,.se-penbar,.se-spot,.se-blank,.se-editbar,.se-toast,.se-progress,.se-live,.se-slot-btn,.se-slot-tools,.se-bg,
-  .se-t-row,.se-q-row,.se-ty-c button,.picker .se-btn{display:none!important}
+  .se-t-row,.se-q-row,.se-ty-c button,.picker .se-btn,.se-curtain,.se-burst{display:none!important}
   .img-slot:not(.has-img){outline-width:2px}
   .deck.se-f-noprint .slide{display:none!important}
   html.se-print-handout .deck .slide{display:none!important}

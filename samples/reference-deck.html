@@ -8,7 +8,7 @@
   레퍼런스 덱: 슬라이드 엔진의 모든 레이아웃·위젯·모션을 담은 기준 파일.
   - 수업자료는 임시 주제(물의 순환)다. 실제 테스트 자료를 받으면 바꾼다.
   - data-demo 값은 웹앱의 미리보기 팝업이 이 장을 골라 쓰는 이름이다. 바꾸면 index.html의 미리보기도 함께 고친다.
-  - 오른쪽 위 버튼(개발용)으로 내장 테마 5종을 바꿔 볼 수 있다. 주소 끝에 ?theme=paper 처럼 붙여도 된다.
+  - 오른쪽 위 버튼(개발용)으로 기본형 테마 5종과 테마 팩 8종을 바꿔 볼 수 있다. 주소 끝에 ?theme=paper, ?theme=studio 처럼 붙여도 된다.
 -->
 <link rel="stylesheet" href="../engine/slide-engine.css">
 <style>
@@ -22,7 +22,7 @@
   --accent-2: #1E2A44;
   --radius: 16px;
 }
-.ref-dev{position:fixed;right:12px;top:12px;z-index:99;display:flex;gap:4px;padding:5px;border-radius:999px;background:rgba(22,24,27,.86);font:600 12px/1 system-ui,sans-serif}
+.ref-dev{position:fixed;right:12px;top:12px;z-index:99;display:flex;flex-wrap:wrap;justify-content:flex-end;max-width:calc(100% - 24px);gap:4px;padding:5px;border-radius:999px;background:rgba(22,24,27,.86);font:600 12px/1 system-ui,sans-serif}
 .ref-dev button{height:28px;padding:0 10px;border:0;border-radius:999px;background:none;color:#fff;font:inherit;cursor:pointer}
 .ref-dev button[aria-pressed="true"]{background:#9FE870;color:#163300}
 @media print{.ref-dev{display:none}}
@@ -469,8 +469,20 @@ print("평균:", total / len(rain))
     deck.setAttribute('data-head-font', t[7]); deck.setAttribute('data-deco', t[9]);
     document.querySelectorAll('.ref-dev button').forEach(function (b) { b.setAttribute('aria-pressed', b.dataset.t === name ? 'true' : 'false'); });
   }
+  /* 테마 팩 8종: data-theme과 테마 CSS를 넣는다 (모션은 테마에 맡긴다) */
+  var PACKS = { studio: '스튜디오', magazine: '매거진', chalk: '칠판', pop: '팝', note: '노트', cosmos: '밤하늘', retro: '레트로', botanic: '보태니컬' };
+  var bar = document.querySelector('.ref-dev');
+  Object.keys(PACKS).forEach(function (k) { var b = document.createElement('button'); b.dataset.t = k; b.textContent = PACKS[k]; bar.append(b); });
   var q = new URLSearchParams(location.search);
-  if (q.get('theme')) apply(q.get('theme'));
+  if (q.get('nodev')) bar.style.display = 'none';
+  if (PACKS[q.get('theme')]) {
+    var tn = q.get('theme');
+    deck.setAttribute('data-theme', tn);
+    ['data-enter', 'data-transition', 'data-bg-motion', 'data-head-font'].forEach(function (a) { deck.removeAttribute(a); });
+    document.querySelectorAll('style').forEach(function (st) { st.textContent = st.textContent.replace(/:root\s*\{[^}]*\}/, ''); });
+    document.write('<link rel="stylesheet" href="../engine/themes/' + tn + '.css">');
+    document.querySelectorAll('.ref-dev button').forEach(function (b) { b.setAttribute('aria-pressed', b.dataset.t === tn ? 'true' : 'false'); });
+  } else if (q.get('theme')) apply(q.get('theme'));
   (q.get('set') || '').split(',').forEach(function (p) { var kv = p.split(':'); if (kv[1]) deck.setAttribute('data-' + kv[0], kv[1]); });
   document.querySelectorAll('.ref-dev button').forEach(function (b) {
     b.addEventListener('click', function () { q.set('theme', b.dataset.t); location.search = q.toString(); });
