@@ -1,8 +1,8 @@
-/*! Slide Engine v1.1.0 | 수업 슬라이드 엔진 | MIT */
+/*! Slide Engine v1.2.0 | 수업 슬라이드 엔진 | MIT */
 (function () {
 'use strict';
 if (window.SlideEngine) return;
-var VERSION = '1.1.0', D = document, W = window;
+var VERSION = '1.2.0', D = document, W = window;
 var SRC = (D.currentScript && D.currentScript.src) || '';
 var CDN = {
   katexCss: 'https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css',
@@ -709,19 +709,28 @@ function start() {
     f.classList.toggle('has-img', !!(img && img.getAttribute('src')));
     var input = h('input', { type: 'file', accept: 'image/*', hidden: true, onchange: function () { if (input.files[0]) put(input.files[0]); input.value = ''; } });
     var pick = function (e) { if (e) e.stopPropagation(); input.click(); };
-    var b = h('button', { type: 'button', class: 'se-slot-btn', 'aria-label': '사진 넣기' + (hint ? ': ' + hint : ''), onclick: pick,
-      html: svg('image') + '<span>눌러서 사진을 고르거나 끌어다 놓으세요</span>' + (hint ? '<small>찾을 사진: ' + esc(hint) + '</small>' : '') });
+    var canFind = deck.getAttribute('data-photo-search') !== 'off' && !!W.fetch;
+    var find = function (e) { if (e) e.stopPropagation(); photoFind(f, hint); };
+    var b = h('div', { class: 'se-slot-btn', onclick: pick,
+      html: svg('image') + '<span>사진을 끌어다 놓거나 아래에서 고르세요</span>' + (hint ? '<small>찾을 사진: ' + esc(hint) + '</small>' : '') },
+      h('span', { class: 'se-slot-acts' },
+        h('button', { type: 'button', text: '내 사진 고르기', 'aria-label': '내 사진 고르기' + (hint ? ': ' + hint : ''), onclick: pick }),
+        canFind ? h('button', { type: 'button', class: 'pri', text: '사진 찾기', onclick: find }) : null));
     var tools = h('div', { class: 'se-slot-tools se-ui' },
+      canFind ? h('button', { type: 'button', text: '찾기', 'aria-label': '사진 찾기', onclick: find }) : null,
       h('button', { type: 'button', text: '바꾸기', onclick: pick }),
-      h('button', { type: 'button', text: '지우기', onclick: function (e) { e.stopPropagation(); if (img) img.removeAttribute('src'); f.classList.remove('has-img'); dirty = true; } }));
-    f.append(b, tools, input);
-    function put(file) {
+      h('button', { type: 'button', text: '지우기', onclick: function (e) { e.stopPropagation(); if (img) img.removeAttribute('src'); f.classList.remove('has-img'); credit(''); dirty = true; } }));
+    var cr = h('small', { class: 'se-slot-credit', text: f.getAttribute('data-credit') || '' });
+    f.append(b, tools, cr, input);
+    function credit(t) { if (t) f.setAttribute('data-credit', t); else f.removeAttribute('data-credit'); cr.textContent = t; }
+    if (W.ResizeObserver) new W.ResizeObserver(function () { var hh = f.clientHeight; if (hh) f.classList.toggle('is-sm', hh < 400); }).observe(f);
+    function put(file, cred) {
       if (!file || !/^image\//.test(file.type)) { toast('사진 파일만 넣을 수 있어요.'); return; }
       var fr = new FileReader();
       fr.onload = function () {
         shrink(fr.result, file, function (url) {
           if (!img) { img = D.createElement('img'); img.alt = hint || '사진'; f.prepend(img); }
-          img.src = url; f.classList.add('has-img');
+          img.src = url; f.classList.add('has-img'); credit(cred || '');
           if (!dirty && has('edit')) toast('사진을 넣었어요. E → 저장을 누르면 파일에 담겨요.');
           dirty = true;
         });
@@ -734,6 +743,67 @@ function start() {
     f.addEventListener('drop', function (e) { e.preventDefault(); f.classList.remove('is-drop'); put(e.dataTransfer.files[0]); });
     f.addEventListener('pointerenter', function () { hoverSlot = f; });
     f.addEventListener('pointerleave', function () { if (hoverSlot === f) hoverSlot = null; });
+  }
+  /* ── 사진 찾기: 위키미디어 공용의 자유 이용 사진을 찾아 파일 안에 담는다 ── */
+  var WM = 'https://commons.wikimedia.org/w/api.php?action=query&format=json&origin=*&prop=imageinfo&iiextmetadatafilter=LicenseShortName%7CArtist';
+  function plain(s) { try { return (new W.DOMParser().parseFromString(String(s), 'text/html').body.textContent || '').replace(/\s+/g, ' ').trim(); } catch (e) { return ''; } }
+  function wmJson(u) { return W.fetch(u).then(function (r) { if (!r.ok) throw 0; return r.json(); }); }
+  function photoFind(f, hint) {
+    var en = (hint.match(/[A-Za-z][A-Za-z0-9 ,'-]{2,}/g) || []).sort(function (a, b) { return b.length - a.length; })[0];
+    var seq = 0, off = 0, busy = false;
+    var inp = h('input', { type: 'search', class: 'se-pf-in', value: (en || hint).trim(), placeholder: '예: water cycle, volcano, 한옥', 'aria-label': '찾을 낱말' });
+    var msg = h('p', { class: 'se-pf-msg', role: 'status' });
+    var grid = h('div', { class: 'se-pf-grid' });
+    var more = uibtn('더 보기', function () { run(true); });
+    more.hidden = true;
+    var form = h('form', { class: 'se-pf-form', onsubmit: function (e) { e.preventDefault(); run(false); } }, inp, h('button', { type: 'submit', class: 'se-ui-btn pri', text: '찾기' }));
+    var p = h('div', { class: 'se-panel se-pf se-ui', role: 'dialog', 'aria-modal': 'true', 'aria-label': '사진 찾기' },
+      h('h2', { text: '사진 찾기' }),
+      h('p', { text: '위키미디어 공용의 자유 이용 사진이에요. 고르면 사진이 파일에 담기고 출처가 함께 적혀요. 영어로 찾으면 더 많이 나와요.' }),
+      form, msg, grid, h('div', { class: 'se-row' }, more, uibtn('닫기', close)));
+    var ov = h('div', { class: 'se-ov', onclick: function (e) { if (e.target === ov) close(); } }, p);
+    open('photo', ov, function () { seq++; });
+    inp.focus(); inp.select();
+    if (inp.value) run(false);
+    function run(add) {
+      var q = inp.value.trim(), my = ++seq;
+      if (!q) { msg.textContent = '찾을 낱말을 적어 주세요.'; return; }
+      if (!add) { off = 0; grid.textContent = ''; }
+      more.hidden = true; msg.textContent = '찾는 중…';
+      wmJson(WM + '&generator=search&gsrnamespace=6&gsrlimit=12&gsroffset=' + off + '&iiprop=url%7Cextmetadata%7Csize%7Cmime&iiurlwidth=330&gsrsearch=' + encodeURIComponent(q + ' filetype:bitmap filew:>1000'))
+        .then(function (d) {
+          if (my !== seq) return;
+          var pages = (d.query && d.query.pages) || {};
+          Object.keys(pages).map(function (k) { return pages[k]; })
+            .filter(function (x) { return x.imageinfo && x.imageinfo[0] && x.imageinfo[0].thumburl && /jpe?g|png/.test(x.imageinfo[0].mime || ''); })
+            .sort(function (a, b) { return (a.index || 0) - (b.index || 0); }).forEach(card);
+          off = (d['continue'] && d['continue'].gsroffset) || 0;
+          more.hidden = !off;
+          msg.textContent = grid.children.length ? '마음에 드는 사진을 누르세요.' : '찾은 사진이 없어요. 다른 낱말(영어)로 찾아 보세요.';
+        })
+        .catch(function () { if (my === seq) msg.textContent = '사진을 찾지 못했어요. 인터넷 연결을 확인해 주세요.'; });
+    }
+    function card(pg) {
+      var ii = pg.imageinfo[0], em = ii.extmetadata || {};
+      var lic = em.LicenseShortName ? plain(em.LicenseShortName.value) : '', who = em.Artist ? plain(em.Artist.value) : '';
+      if (who.length > 40) who = who.slice(0, 38) + '…';
+      var name = pg.title.replace(/^File:/, '').replace(/\.\w+$/, '');
+      var cred = '사진: ' + [who, lic, 'Wikimedia Commons'].filter(Boolean).join(' · ');
+      var c = h('button', { type: 'button', class: 'se-pf-card', title: name, onclick: function () { take(pg.title, cred, c); } },
+        h('img', { src: ii.thumburl, alt: name }), h('small', { text: [lic, who].filter(Boolean).join(' · ') }));
+      grid.append(c);
+    }
+    function take(title, cred, c) {
+      if (busy) return;
+      busy = true;
+      var my = seq;
+      c.classList.add('is-busy'); msg.textContent = '사진을 넣는 중…';
+      wmJson(WM + '&iiprop=url&iiurlwidth=1280&titles=' + encodeURIComponent(title))
+        .then(function (d) { var pages = d.query.pages, ii = pages[Object.keys(pages)[0]].imageinfo[0]; return W.fetch(ii.thumburl || ii.url); })
+        .then(function (r) { if (!r.ok) throw 0; return r.blob(); })
+        .then(function (bl) { busy = false; if (my !== seq) return; close(); f.__put(bl, cred); })
+        .catch(function () { busy = false; c.classList.remove('is-busy'); if (my === seq) msg.textContent = '사진을 가져오지 못했어요. 다른 사진을 골라 보세요.'; });
+    }
   }
   function shrink(url, file, cb) {
     if (file.size < 600000 || /svg|gif/.test(file.type)) { cb(url); return; }

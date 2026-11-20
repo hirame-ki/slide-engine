@@ -17,9 +17,9 @@ AI가 만든 수업 슬라이드(HTML)가 불러 쓰는 엔진이다. 디자인�
 ## 불러오는 주소
 
 ```html
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/hirame-ki/slide-engine@v1.1.0/engine/slide-engine.css">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/hirame-ki/slide-engine@v1.1.0/engine/themes/studio.css">   <!-- 테마 팩을 쓸 때만 -->
-<script src="https://cdn.jsdelivr.net/gh/hirame-ki/slide-engine@v1.1.0/engine/slide-engine.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/hirame-ki/slide-engine@v1.2.0/engine/slide-engine.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/hirame-ki/slide-engine@v1.2.0/engine/themes/studio.css">   <!-- 테마 팩을 쓸 때만 -->
+<script src="https://cdn.jsdelivr.net/gh/hirame-ki/slide-engine@v1.2.0/engine/slide-engine.js"></script>
 ```
 
 
@@ -85,6 +85,8 @@ AI가 만든 수업 슬라이드(HTML)가 불러 쓰는 엔진이다. 디자인�
 | 도구 막대 | 키보드가 없는 전자칠판용. 마우스를 움직이거나 가운데를 누르면 왼쪽 아래에 나온다 |
 | 한글 입력 상태 | 단축키는 자판 위치(`code`)로 읽어서 한/영 상태와 상관없이 동작한다 |
 | 사진 줄이기 | 600KB가 넘는 사진은 긴 쪽 1920px JPEG로 줄여 넣는다 (저장 파일이 커지지 않게) |
+| 사진 찾기 (v1.2.0) | 사진 칸의 [사진 찾기]를 누르면 위키미디어 공용(자유 이용 사진)에서 찾는다. 처음 낱말은 `data-hint`의 영어 부분. 고른 사진은 1280px로 받아 파일 안에 담고, `<figure data-credit="사진: 작가 · 라이선스 · Wikimedia Commons">`로 출처를 적어 칸 구석에 보여 준다. 찾을 낱말은 사용자의 브라우저에서 commons.wikimedia.org로 바로 간다(다른 곳으로 보내지 않는다). 끄려면 `.deck`에 `data-photo-search="off"` |
+| 사진 출처 | `<figure class="img-slot" data-credit="…">` — 사진 칸 구석에 작게 보인다. 사진을 지우거나 내 사진으로 바꾸면 사라진다 |
 | 바깥에서 쓰는 함수 | `SlideEngine.go(n)` `next()` `prev()` `toggle('pen'…)` `html()` `refresh()` `index` `total` |
 
 ## 밖에서 불러오는 것 (모두 버전 고정, 쓸 때만)
@@ -114,6 +116,7 @@ AI가 만든 수업 슬라이드(HTML)가 불러 쓰는 엔진이다. 디자인�
 |---|---|---|
 | v1.0.0 | 2026-11-20 | 첫 버전 |
 | v1.1.0 | 2026-11-20 | 테마 팩 8종(`data-theme`, `themes/*.css`), 장식 칸, 큰 제목 등장 효과 5종, 전환 4종 추가(wipe·iris·cover·curtain), 배경 입자 5종 추가(stars·snow·petals·bubbles·confetti), 정답 축하 색종이, `--on-accent` 변수, `data-head-font="pretendard"` 규칙. 기존 파일은 그대로 동작한다 |
+| v1.2.0 | 2026-11-20 | 사진 칸에 [사진 찾기](위키미디어 공용 검색 → 파일 안에 담기), 사진 출처 표시(`data-credit`), 빈 사진 칸 버튼 두 개([내 사진 고르기]·[사진 찾기]), 낮은 칸에서는 아이콘·검색어 숨김. |
 | v1.0.1 | 2026-11-20 | 공개한 클릭 단계·빈칸 정답이 다른 장 위로 비쳐 보이던 문제 수정. 학습목표·요약·목차·퀴즈 보기 안에 `<mark>`·`<b>`를 넣으면 글자가 깨지던 문제 수정. blob 장식에서 질문 장의 물음표가 묻히던 문제 수정. 크기 맞춤 보강(ResizeObserver) |
 
 ## 라이선스

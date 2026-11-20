@@ -1,4 +1,4 @@
-/*! Slide Engine v1.1.0 | 수업 슬라이드 엔진 | MIT */
+/*! Slide Engine v1.2.0 | 수업 슬라이드 엔진 | MIT */
 @import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css");
 
 /* ───────── 1. 테마 변수 (생성된 파일의 <style>이 덮어쓴다) ───────── */
@@ -298,6 +298,16 @@ html.se-hc{--bg:#FFFFFF;--surface:#FFFFFF;--ink:#000000;--ink-2:#000000;--accent
 .se-slot-btn svg{width:72px;height:72px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
 .se-slot-btn small{font-size:24px;font-weight:500;max-width:520px}
 .img-slot.has-img>.se-slot-btn{display:none}
+.se-slot-acts{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;margin-top:6px}
+.se-slot-acts button{font:700 24px/1 var(--se-font);height:60px;padding:0 28px;border-radius:99px;border:3px solid color-mix(in srgb,var(--ink) 50%,transparent);background:var(--bg);color:var(--ink);cursor:pointer;white-space:nowrap}
+.se-slot-acts button.pri{background:var(--accent);border-color:var(--accent);color:var(--on-accent,#fff)}
+.se-slot-acts button:focus-visible{outline:4px solid var(--ink);outline-offset:3px}
+.img-slot.is-sm .se-slot-btn{gap:8px;padding:16px}
+.img-slot.is-sm .se-slot-btn>svg,.img-slot.is-sm .se-slot-btn>small{display:none}
+.se-slot-credit{position:absolute;right:0;bottom:0;z-index:1;max-width:100%;padding:6px 14px;border-radius:12px 0 0 0;background:rgba(0,0,0,.56);color:#fff;font:500 18px/1.3 var(--se-font);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;pointer-events:none}
+.se-slot-credit:empty,.img-slot:not(.has-img)>.se-slot-credit{display:none}
+.img-slot.bg>.se-slot-credit{bottom:auto;top:0;border-radius:0 0 0 12px}
+.deck:is([data-img-shape="circle"],[data-img-shape="arch"]) .img-slot:not(.bg)>.se-slot-credit{right:50%;translate:50% 0;bottom:7%;border-radius:99px;max-width:70%}
 .img-slot.is-drop{outline:6px solid var(--accent);outline-offset:-6px}
 .se-slot-tools{position:absolute;right:16px;top:16px;display:none;gap:8px;z-index:2}
 .img-slot.has-img:hover>.se-slot-tools,.img-slot.has-img:focus-within>.se-slot-tools{display:flex}
@@ -542,6 +552,19 @@ html.se-hc :is(.card,.col,.goals>li,.activity>*,.quiz .why,.se-ty-t,.blank){outl
 .se-ui-btn.pri{background:#16181B;color:#fff}
 .se-ui-btn:focus-visible{outline:3px solid #16181B;outline-offset:2px}
 .se-ver{margin-left:auto;font-size:13px;color:#5B6168}
+/* 사진 찾기 */
+.se-panel.se-pf{width:min(1000px,100%);box-sizing:border-box}
+.se-pf-form{display:flex;gap:8px;margin:0 0 10px}
+.se-pf-in{flex:1;min-width:0;height:44px;padding:0 18px;border-radius:999px;border:1.5px solid #16181B;background:#fff;color:#16181B;font:500 16px var(--se-font)}
+.se-pf-in:focus-visible{outline:3px solid #16181B;outline-offset:2px}
+.se-panel p.se-pf-msg{margin:0 0 10px;min-height:22px;font-size:14px}
+.se-pf-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px;margin:0 0 16px}
+.se-pf-grid:empty{display:none}
+.se-pf-card{position:relative;aspect-ratio:4/3;padding:0;border:0;border-radius:12px;overflow:hidden;background:#F1F2EE;cursor:pointer;outline:3px solid transparent;outline-offset:2px}
+.se-pf-card img{width:100%;height:100%;object-fit:cover;display:block}
+.se-pf-card small{position:absolute;left:0;right:0;bottom:0;padding:16px 9px 6px;background:linear-gradient(transparent,rgba(0,0,0,.72));color:#fff;font:500 11px/1.3 var(--se-font);text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.se-pf-card:hover,.se-pf-card:focus-visible{outline-color:#16181B}
+.se-pf-card.is-busy{opacity:.45}
 /* 전체 보기 */
 .se-ov.se-over{place-items:start center;background:#1B1D20;padding:32px}
 .se-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:20px;width:100%;max-width:1500px}
