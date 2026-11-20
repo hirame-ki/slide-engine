@@ -4,8 +4,8 @@
 AI는 구조와 내용, 테마 색만 쓰고, 디자인·모션·발표 기능(전체 보기, 판서 펜, 퀴즈, 타이머 등)은 이 엔진이 맡습니다.
 
 ```html
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/hirame-ki/slide-engine@v1.0.0/engine/slide-engine.css">
-<script src="https://cdn.jsdelivr.net/gh/hirame-ki/slide-engine@v1.0.0/engine/slide-engine.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/hirame-ki/slide-engine@v1.0.1/engine/slide-engine.css">
+<script src="https://cdn.jsdelivr.net/gh/hirame-ki/slide-engine@v1.0.1/engine/slide-engine.js"></script>
 ```
 
 - 사용법과 버전 기록: [engine/README.md](engine/README.md)

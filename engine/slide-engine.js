@@ -1,8 +1,8 @@
-/*! Slide Engine v1.0.0 | 수업 슬라이드 엔진 | MIT */
+/*! Slide Engine v1.0.1 | 수업 슬라이드 엔진 | MIT */
 (function () {
 'use strict';
 if (window.SlideEngine) return;
-var VERSION = '1.0.0', D = document, W = window;
+var VERSION = '1.0.1', D = document, W = window;
 var CDN = {
   katexCss: 'https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css',
   katexJs: 'https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js',
@@ -1018,6 +1018,7 @@ function start() {
       if (s && s.__put) { e.preventDefault(); s.__put(f); }
     });
     W.addEventListener('resize', function () { fit(); });
+    if (W.ResizeObserver) new W.ResizeObserver(function () { fit(); }).observe(deck);
     W.addEventListener('hashchange', function () { var n = parseInt(W.location.hash.slice(1), 10); if (n) go(n - 1); });
     W.addEventListener('beforeunload', function (e) { if (dirty && has('edit')) { e.preventDefault(); e.returnValue = ''; } });
     if (mq.addEventListener) mq.addEventListener('change', function () { slides[cur].__pt && slides[cur].__pt.start(); });

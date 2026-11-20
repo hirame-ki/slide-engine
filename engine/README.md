@@ -16,8 +16,8 @@ AI가 만든 수업 슬라이드(HTML)가 불러 쓰는 엔진이다. 디자인�
 ## 불러오는 주소
 
 ```html
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/hirame-ki/slide-engine@v1.0.0/engine/slide-engine.css">
-<script src="https://cdn.jsdelivr.net/gh/hirame-ki/slide-engine@v1.0.0/engine/slide-engine.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/hirame-ki/slide-engine@v1.0.1/engine/slide-engine.css">
+<script src="https://cdn.jsdelivr.net/gh/hirame-ki/slide-engine@v1.0.1/engine/slide-engine.js"></script>
 ```
 
 - 저장소 `hirame-ki/slide-engine`에 `engine/`과 `samples/` 폴더를 그대로 올린다 (GitHub 웹에서 파일 끌어다 놓기).
@@ -81,6 +81,7 @@ AI가 만든 수업 슬라이드(HTML)가 불러 쓰는 엔진이다. 디자인�
 | 버전 | 날짜 | 내용 |
 |---|---|---|
 | v1.0.0 | 2026-11-20 | 첫 버전 |
+| v1.0.1 | 2026-11-20 | 공개한 클릭 단계·빈칸 정답이 다른 장 위로 비쳐 보이던 문제 수정. 학습목표·요약·목차·퀴즈 보기 안에 `<mark>`·`<b>`를 넣으면 글자가 깨지던 문제 수정. blob 장식에서 질문 장의 물음표가 묻히던 문제 수정. 크기 맞춤 보강(ResizeObserver) |
 
 ## 라이선스
 
